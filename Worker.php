@@ -4,6 +4,7 @@
  *
  * @author haobaif <i@fanhaobai.com>
  */
+
 namespace PHPServer;
 
 /**
@@ -15,9 +16,9 @@ class Worker
     /**
      * status状态值.
      */
-    const STATUS_STARTING  = 1;
-    const STATUS_RUNNING   = 2;
-    const STATUS_SHUTDOWN  = 3;
+    const STATUS_STARTING = 1;
+    const STATUS_RUNNING = 2;
+    const STATUS_SHUTDOWN = 3;
     const STATUS_RELOADING = 4;
 
     /**
@@ -38,7 +39,7 @@ class Worker
     /**
      * worker数量.
      */
-    static $workCount = 10;
+    static $workerCount = 2;
 
     /**
      * 状态.
@@ -71,6 +72,8 @@ class Worker
         } elseif ($pid > 0) {
             exit(0);
         }
+
+        // 将当前进程提升为会话leader
         if (-1 === posix_setsid()) {
             exit("process setsid fail\n");
         }
@@ -91,7 +94,7 @@ class Worker
      */
     protected static function saveMasterPid()
     {
-        // 保存pid以实现重启和停止
+        // 保存pid以实现重载和停止
         static::$_masterPid = posix_getpid();
         if (false === file_put_contents(static::$pidFile, static::$_masterPid)) {
             exit("can not save pid to" . static::$pidFile . "\n");
@@ -126,11 +129,11 @@ class Worker
         switch ($command) {
             case 'start':
                 if ($command2 === '-d') {
-                   static::$daemonize = true;
+                    static::$daemonize = true;
                 }
                 break;
             case 'stop':
-                echo ("PHPServer stopping ...\n");
+                echo("PHPServer stopping ...\n");
 
                 // 给master发送stop信号
                 posix_kill($masterPid, SIGINT);
@@ -147,7 +150,7 @@ class Worker
 
                 exit("PHPServer stop success\n");
             case 'reload':
-                echo ("PHPServer reloading ...\n");
+                echo("PHPServer reloading ...\n");
 
                 // 给master发送reload信号
                 posix_kill($masterPid, SIGUSR1);
@@ -177,7 +180,7 @@ class Worker
     {
         static::$status = static::STATUS_RUNNING;
 
-        while(1) {
+        while (1) {
             // 这两处捕获触发信号,很重要
             pcntl_signal_dispatch();
 
@@ -197,12 +200,12 @@ class Worker
     }
 
     /**
-     * 维护worker进程数量,防止worker异常退出
+     * 维持worker进程数量,防止worker异常退出
      */
     protected static function keepWorkerNumber()
     {
-        $allWorkPid = static::getAllWorkerPid();
-        foreach ($allWorkPid as $index => $pid) {
+        $allWorkerPid = static::getAllWorkerPid();
+        foreach ($allWorkerPid as $index => $pid) {
             if (!static::isAlive($pid)) {
                 unset(static::$_workers[$index]);
             }
@@ -244,7 +247,7 @@ class Worker
      */
     protected static function forkWorkers()
     {
-        while(count(static::$_workers) < static::$workCount) {
+        while (count(static::$_workers) < static::$workerCount) {
             static::forkOneWorker();
         }
     }
@@ -259,7 +262,7 @@ class Worker
         // 父进程
         if ($pid > 0) {
             static::$_workers[] = $pid;
-        } else if ($pid === 0) { //子进程
+        } else if ($pid === 0) { // 子进程
             static::setProcessTitle('PHPServer: worker');
 
             // 子进程会阻塞在这里
@@ -300,6 +303,7 @@ class Worker
 
         // 忽略信号
         pcntl_signal(SIGUSR2, SIG_IGN, false);
+        pcntl_signal(SIGHUP, SIG_IGN, false);
         pcntl_signal(SIGPIPE, SIG_IGN, false);
     }
 
@@ -310,7 +314,7 @@ class Worker
      */
     protected static function signalHandler($signal)
     {
-        switch($signal) {
+        switch ($signal) {
             case SIGINT:
             case SIGTERM:
                 static::stop();
@@ -319,7 +323,8 @@ class Worker
             case SIGUSR1:
                 static::reload();
                 break;
-            default: break;
+            default:
+                break;
         }
     }
 
@@ -373,20 +378,20 @@ class Worker
      */
     protected static function stopAllWorkers()
     {
-        $allWorkPid = static::getAllWorkerPid();
-        foreach ($allWorkPid as $workPid) {
-            posix_kill($workPid, SIGTERM);
+        $allWorkerPid = static::getAllWorkerPid();
+        foreach ($allWorkerPid as $workerPid) {
+            posix_kill($workerPid, SIGTERM);
         }
 
         // 子进程退出异常,强制kill
         usleep(1000);
-        if (static::isAlive($allWorkPid)) {
-            foreach ($allWorkPid as $workPid) {
-                static::forceKill($workPid);
+        if (static::isAlive($allWorkerPid)) {
+            foreach ($allWorkerPid as $workerPid) {
+                static::forceKill($workerPid);
             }
         }
 
-        // 清空work实例
+        // 清空worker实例
         static::$_workers = array();
     }
 
@@ -439,10 +444,10 @@ class Worker
 
         // 模拟调度,实际用event实现
         while (1) {
-            // 触发信号
+            // 捕获信号
             pcntl_signal_dispatch();
 
-            call_user_func(function() {
+            call_user_func(function () {
                 // do something
                 usleep(200);
             });
