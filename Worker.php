@@ -16,9 +16,9 @@ class Worker
     /**
      * status状态值.
      */
-    const STATUS_STARTING = 1;
-    const STATUS_RUNNING = 2;
-    const STATUS_SHUTDOWN = 3;
+    const STATUS_STARTING  = 1;
+    const STATUS_RUNNING   = 2;
+    const STATUS_SHUTDOWN  = 3;
     const STATUS_RELOADING = 4;
 
     /**
