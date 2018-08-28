@@ -103,7 +103,7 @@ class Worker
     /**
      * 解析命令参数.
      */
-    protected static function parseCommand()
+    protected static function parseCmd()
     {
         global $argv;
         $command = isset($argv[1]) ? $argv[1] : '';
@@ -173,12 +173,12 @@ class Worker
     /**
      * master进程监控worker.
      */
-    protected static function monitorWorkers()
+    protected static function monitor()
     {
         static::$status = static::STATUS_RUNNING;
 
         while(1) {
-            // 触发信号
+            // 这两处捕获触发信号,很重要
             pcntl_signal_dispatch();
 
             // 刮起当前进程的执行直到一个子进程退出或接收到一个信号
@@ -192,7 +192,7 @@ class Worker
                 static::keepWorkerNumber();
             }
 
-            // 其他你想监控的.
+            // 其他你想监控的
         }
     }
 
@@ -261,6 +261,8 @@ class Worker
             static::$_workers[] = $pid;
         } else if ($pid === 0) { //子进程
             static::setProcessTitle('PHPServer: worker');
+
+            // 子进程会阻塞在这里
             static::run();
 
             // 子进程退出
@@ -454,7 +456,7 @@ class Worker
     {
         static::init();
 
-        static::parseCommand();
+        static::parseCmd();
         static::daemonize();
         static::saveMasterPid();
 
@@ -462,7 +464,7 @@ class Worker
         static::forkWorkers();
 
         static::resetStdFd();
-        static::monitorWorkers();
+        static::monitor();
     }
 
 }
