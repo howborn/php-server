@@ -184,7 +184,7 @@ class Worker
             // 这两处捕获触发信号,很重要
             pcntl_signal_dispatch();
 
-            // 刮起当前进程的执行直到一个子进程退出或接收到一个信号
+            // 挂起当前进程的执行直到一个子进程退出或接收到一个信号
             $status = 0;
             $pid = pcntl_wait($status, WUNTRACED);
 
@@ -425,14 +425,8 @@ class Worker
     {
         static::$status = static::STATUS_RELOADING;
 
+        // 停止所有worker即可,master会自动fork新worker
         static::stopAllWorkers();
-
-        $allWorkPid = static::getAllWorkerPid();
-        while (static::isAlive($allWorkPid)) {
-            usleep(10);
-        }
-
-        static::forkWorkers();
     }
 
     /**
