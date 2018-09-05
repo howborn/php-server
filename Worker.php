@@ -191,8 +191,8 @@ class Worker
             pcntl_signal_dispatch();
 
             if ($pid >= 0) {
-                // 维持worker数
-                static::keepWorkerNumber();
+                // worker健康检查
+                static::checkWorkerAlive();
             }
 
             // 其他你想监控的
@@ -200,9 +200,9 @@ class Worker
     }
 
     /**
-     * 维持worker进程数量,防止worker异常退出
+     * worker健康检查,防止worker异常退出
      */
-    protected static function keepWorkerNumber()
+    protected static function checkWorkerAlive()
     {
         $allWorkerPid = static::getAllWorkerPid();
         foreach ($allWorkerPid as $index => $pid) {
@@ -380,7 +380,7 @@ class Worker
     {
         $allWorkerPid = static::getAllWorkerPid();
         foreach ($allWorkerPid as $workerPid) {
-            posix_kill($workerPid, SIGTERM);
+            posix_kill($workerPid, SIGINT);
         }
 
         // 子进程退出异常,强制kill
