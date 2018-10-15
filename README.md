@@ -1,6 +1,6 @@
-# php-server
+# [php-server](https://www.fanhaobai.com/2018/09/process-php-multiprocess-server.html)
 
-通过 PHP 控制进程，实现一个简易的 Server。
+通过 PHP 控制进程，实现一个简易的 Server，具体说明见 [用PHP玩转进程之二 — 多进程PHPServer](https://www.fanhaobai.com/2018/09/process-php-multiprocess-server.html)。
 
 ## 控制流程
 
