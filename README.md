@@ -2,6 +2,10 @@
 
 通过 PHP 控制进程，实现一个简易的 Server。
 
+## 控制流程
+
+[控制流程](https://img0.fanhaobai.com/2018/09/process-php-multiprocess-server/e0e86073-3093-4e5f-be20-b64510e61575.png)
+
 ## 命令
 
 该 PHPServer 仅实现了`start|stop|reload|help`命令。
