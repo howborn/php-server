@@ -4,7 +4,7 @@
 
 ## 控制流程
 
-[控制流程](https://img0.fanhaobai.com/2018/09/process-php-multiprocess-server/e0e86073-3093-4e5f-be20-b64510e61575.png)
+![控制流程](https://img0.fanhaobai.com/2018/09/process-php-multiprocess-server/e0e86073-3093-4e5f-be20-b64510e61575.png)
 
 ## 命令
 
